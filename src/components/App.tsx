@@ -1,32 +1,176 @@
-import { FaSmog } from 'react-icons/fa'
-import './app.scss'
+import * as React from 'react'
+// Import stylesheets
+import './app.css'
+import Letterize from 'letterizejs'
+import styled from 'styled-components'
+import { Outbounds } from './Outbounds'
+import image from '/public/cover.jpg'
 
-export default function App() {
+function randomFloatFromInterval(min: number, max: number) {
+  // min and max included
+  return Math.random() * (max - min + 1) + min
+}
+function randomIntFromInterval(min: number, max: number) {
+  // min and max included
+  return Math.floor(Math.random() * (max - min + 1) + min)
+}
+
+const windowWidth = window.innerWidth
+const windowHeight = window.innerWidth
+const keyFrames = []
+const classes = []
+function iOS() {
   return (
-    <div className="grid h-screen place-items-center bg-slate-200	">
-      <a
-        href="#"
-        className="block max-w-sm rounded-lg border border-gray-200 bg-white p-6 shadow hover:bg-gray-100 dark:border-gray-700 dark:bg-gray-800 dark:hover:bg-gray-700"
-      >
-        <h5 className="mb-2 text-2xl font-bold tracking-tight text-gray-900 dark:text-white">
-          <FaSmog />
-          Hexadeciman - boilerplate
-        </h5>
-        <p className="font-normal text-gray-700 dark:text-gray-400">
-          A boilerplate for a React project using Tailwind and Vite is a
-          pre-built template that provides a starting point for developing a
-          modern web application. The boilerplate includes all the necessary
-          dependencies, such as React, Tailwind CSS, and Vite, and a
-          pre-configured webpack or vite configuration file that supports
-          Tailwind CSS and other necessary plugins. It also includes a basic
-          file structure for organizing source code, styles, assets, and other
-          necessary files. Developers can use this boilerplate as a foundation
-          to build their own React application without worrying about setting up
-          the initial configuration and dependencies. By utilizing a
-          boilerplate, developers can save time and focus on building out the
-          unique features of their application.
-        </p>
-      </a>
-    </div>
+    [
+      'iPad Simulator',
+      'iPhone Simulator',
+      'iPod Simulator',
+      'iPad',
+      'iPhone',
+      'iPod'
+    ].find((el) => el === navigator.platform) ||
+    // iPad on iOS 13 detection
+    (navigator.userAgent.includes('Mac') && 'ontouchend' in document)
+  )
+}
+const isAppleDevice = iOS()
+for (let i = 0; i < 50; i++) {
+  keyFrames.push(`
+    @keyframes popinplace${i} {
+      0% {
+        opacity: 0;
+        backface-visibility: hidden;
+        ${isAppleDevice ? 'filter: blur(8px);' : ''}
+        transform: 
+          translate3d(
+            ${randomIntFromInterval(-2 * windowWidth, 2 * windowWidth)}px, 
+            ${randomIntFromInterval(
+              -1.5 * windowHeight,
+              1.5 * windowHeight
+            )}px, 0px)
+          Scale(${randomIntFromInterval(15, 30)})
+          rotateZ(${randomIntFromInterval(-500, 500)}deg);
+      }
+      100% {
+        ${isAppleDevice ? 'filter: blur(0px);' : ''}
+        opacity: 1;
+        transform: translate3d(0px, 0px, 0px) Scale(1) rotateZ(0deg);
+      }
+    }
+  `)
+  classes.push(`
+    .pop${i} {
+      display: inline-block;
+      animation: ${randomFloatFromInterval(
+        0.75,
+        1.25
+      )}s forwards ease .75s popinplace${i};
+    }
+  `)
+}
+const Wrapper = styled.div`
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  ${keyFrames.join('')}
+  ${classes.join('')}
+`
+function getOffset(el: { getBoundingClientRect: () => any }) {
+  const rect = el.getBoundingClientRect()
+  return {
+    left: rect.left + window.scrollX,
+    top: rect.top + window.scrollY
+  }
+}
+export default function App() {
+  const elementRef = React.useRef<any>()
+  const finalPositionRef = React.useRef<any>()
+  const cardRef = React.useRef<any>()
+
+  const moveToGoodPosition = React.useCallback(() => {
+    const animationText: any = document.getElementById('animateMe')
+    const finalPositionTitle: any =
+      document.getElementById('finalPositionTitle')
+    if (animationText && finalPositionTitle) {
+      const offset = getOffset(finalPositionRef.current)
+      animationText.style.left = `${parseInt(offset.left)}px`
+      animationText.style.top = `${parseInt(offset.top)}px`
+      animationText.style.transform = `translate3d(-1px, 0px, 0)`
+      window.setTimeout(() => {
+        animationText.style.opacity = '0'
+        finalPositionTitle.style.opacity = '1'
+      }, 500)
+    }
+  }, [])
+  React.useEffect(() => {
+    if (elementRef.current) {
+      elementRef.current.style.opacity = 1
+      const example = new Letterize({ targets: '#animateMe' })
+      const letters = example.listAll
+      const randomIndexes = Array.from(Array(letters.length).keys()).sort(
+        function () {
+          return Math.random() - 0.5
+        }
+      )
+      let i = 0
+      let j = 0
+      const animationLetterIsDone = () => {
+        j++
+        if (j >= letters.length) {
+          window.setTimeout(() => {
+            cardRef.current.style.opacity = 1
+            moveToGoodPosition()
+          }, 1250)
+        }
+      }
+      addEventListener('resize', () => {
+        moveToGoodPosition()
+      })
+
+      setInterval(() => {
+        if (i < letters.length) {
+          letters[randomIndexes[i]].addEventListener(
+            'animationend',
+            () => animationLetterIsDone(),
+            false
+          )
+          if (letters[randomIndexes[i]].innerHTML === '.') {
+            letters[randomIndexes[i]].classList.add('blank')
+          } else {
+            letters[randomIndexes[i]].classList.add('pop' + i)
+          }
+          i++
+        }
+      }, 10)
+    }
+  }, [moveToGoodPosition])
+  return (
+    <Wrapper>
+      <h1 ref={elementRef} id="animateMe">
+        Yassin
+      </h1>
+      <div ref={cardRef} className="card">
+        <div
+          className={`profilePicture`}
+          style={{ backgroundImage: `url("${image}")` }}
+        />
+        <div className="textContent">
+          <h1 id="finalPositionTitle" ref={finalPositionRef}>
+            Yassin
+          </h1>
+          <p>
+            I am working as a <b>Business Analyst</b> and{' '}
+            <b>Software Engineer</b> at&nbsp;Vitol, Geneva - Switzerland
+          </p>
+          <p>
+            I enjoy exploring the intersection of technology, art and design
+          </p>
+
+          <p>Connect with me using the links below</p>
+
+          <Outbounds />
+        </div>
+      </div>
+    </Wrapper>
   )
 }

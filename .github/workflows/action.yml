@@ -61,7 +61,7 @@ jobs:
           command: c
           cwd: "./"
           files: |
-            build/
+            dist/
             captain-definition
             nginx.conf
             expires.conf

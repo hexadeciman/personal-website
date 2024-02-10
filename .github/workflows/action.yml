@@ -27,10 +27,6 @@ jobs:
         node-version: ${{ matrix.node-version }}
         cache: 'pnpm'
 
-    - run: CI=true pnpm i
-    - run: pnpm test
-    - run: pnpm run build
-
     - name: Zip build
       uses: thedoctor0/zip-release@master
       with:

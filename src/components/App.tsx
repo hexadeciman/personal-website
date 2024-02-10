@@ -1,10 +1,15 @@
 import * as React from 'react'
+import { animated, useSpring } from 'react-spring'
+
 // Import stylesheets
 import './app.css'
 import Letterize from 'letterizejs'
 import styled from 'styled-components'
 import { Outbounds } from './Outbounds'
 import image from '/public/cover.jpg'
+import { use3dEffect } from 'hooks'
+const trans = (x: number, y: number, s: number): string =>
+  `perspective(1000px) rotateX(${0}deg) rotateY(${-0}deg) scale(${0})`
 
 function randomFloatFromInterval(min: number, max: number) {
   // min and max included
@@ -87,6 +92,7 @@ export default function App() {
   const finalPositionRef = React.useRef<any>()
   const cardRef = React.useRef<any>()
 
+  const [animationDone, setAnimationDone] = React.useState(false)
   const moveToGoodPosition = React.useCallback(() => {
     const animationText: any = document.getElementById('animateMe')
     const finalPositionTitle: any =
@@ -99,6 +105,9 @@ export default function App() {
       window.setTimeout(() => {
         animationText.style.opacity = '0'
         finalPositionTitle.style.opacity = '1'
+        window.setTimeout(() => {
+          setAnimationDone(true)
+        }, 500)
       }, 500)
     }
   }, [])
@@ -144,33 +153,54 @@ export default function App() {
       }, 10)
     }
   }, [moveToGoodPosition])
+  const animatedDivRef = React.useRef<HTMLDivElement>(null)
+  const glowRef = React.useRef<HTMLDivElement>(null)
+
+  const {
+    style: animationStyle,
+    styleGlow,
+    ...mouseEvents
+  } = use3dEffect(animatedDivRef, glowRef, animationDone)
   return (
-    <Wrapper>
-      <h1 ref={elementRef} id="animateMe">
-        Yassin
-      </h1>
-      <div ref={cardRef} className="card">
-        <div
-          className={`profilePicture`}
-          style={{ backgroundImage: `url("${image}")` }}
-        />
-        <div className="textContent">
-          <h1 id="finalPositionTitle" ref={finalPositionRef}>
-            Yassin
-          </h1>
-          <p>
-            I am working as a <b>Business Analyst</b> and{' '}
-            <b>Software Engineer</b> at&nbsp;Vitol, Geneva - Switzerland
-          </p>
-          <p>
-            I enjoy exploring the intersection of technology, art and design
-          </p>
+    <animated.div
+      ref={animatedDivRef}
+      style={{ ...animationStyle }}
+      {...mouseEvents}
+    >
+      <Wrapper>
+        <h1 ref={elementRef} id="animateMe">
+          Yassin
+        </h1>
+        <div ref={cardRef} className="card">
+          <animated.div
+            ref={glowRef}
+            className="glow"
+            style={{ ...styleGlow }}
+          />
+          <div
+            className="profilePicture"
+            style={{
+              backgroundImage: `url("${image}")`
+            }}
+          />
+          <div className="textContent">
+            <h1 id="finalPositionTitle" ref={finalPositionRef}>
+              Yassin
+            </h1>
+            <p>
+              I am working as a <b>Business Analyst</b> and{' '}
+              <b>Software Engineer</b> at&nbsp;Vitol, Geneva - Switzerland
+            </p>
+            <p>
+              I enjoy exploring the intersection of technology, art and design
+            </p>
 
-          <p>Connect with me using the links below</p>
+            <p>Connect with me using the links below</p>
 
-          <Outbounds />
+            <Outbounds />
+          </div>
         </div>
-      </div>
-    </Wrapper>
+      </Wrapper>
+    </animated.div>
   )
 }

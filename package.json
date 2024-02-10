@@ -25,8 +25,11 @@
     "letterizejs": "^2.0.1",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
+    "react-spring": "^9.7.3",
+    "resize-observer-polyfill": "^1.5.1",
     "styled-component": "^2.8.0",
     "styled-components": "^5.3.9",
+    "use-3d-effect": "^1.1.0",
     "vite-plugin-svgr": "^2.4.0"
   },
   "devDependencies": {
